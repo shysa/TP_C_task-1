@@ -12,13 +12,13 @@
 
 
 int main() {
-    int rows;
-    int cols;
-    int **matrix;
-    int ***result;
+    size_t rows = 0;
+    size_t cols = 0;
+    int **matrix = NULL;
+    int ***result = NULL;
 
     printf("Enter size of matrix: ");
-    scanf("%d %d", &rows, &cols);
+    Reading(stdin, &rows, &cols);
 
     matrix = GetMatrixMemory(rows, cols);
     ReadMatrix(matrix, rows, cols);

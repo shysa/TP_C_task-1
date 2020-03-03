@@ -67,9 +67,11 @@ int*** FormingMatrixes(int** matrix, size_t rows, size_t cols) {
     new_cols[2] = cols / 3;
 
     for (size_t i = 0; i < 3; i++) {
-        result[i] = GetMatrixMemory(rows, new_cols[i]);
-        if (result[i]) {
-            CopingMatrix(&result[i], matrix, rows, new_cols[i], i);
+        if (new_cols[i]) {
+            result[i] = GetMatrixMemory(rows, new_cols[i]);
+            if (result[i]) {
+                CopingMatrix(&result[i], matrix, rows, new_cols[i], i);
+            }
         }
     }
 
@@ -109,5 +111,12 @@ int FreeMatrixMemory(int** matrix, size_t rows) {
     }
     free(matrix);
 
+    return 0;
+}
+
+int Reading(FILE * input, size_t *rows, size_t *cols) {
+    if (!fscanf(input, "%zu %zu", rows, cols)) {
+        return 1;
+    }
     return 0;
 }
