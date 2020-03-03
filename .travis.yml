@@ -1,0 +1,43 @@
+language: c
+
+env:
+  global:
+    - CXX_FLAGS="-Wall -Werror -Wpedantic"
+    - RUN_TESTS=true
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: true
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - valgrind
+            - cppcheck
+            - gcc-7
+            - g++-7
+
+before_script:
+  - export CXX_FLAGS="${CXX_FLAGS}"
+
+script:
+  - pip install --user cpp-coveralls
+  - export CXX=/usr/bin/g++-7
+  - export C=/usr/bin/gcc-7
+  - mkdir -p build
+  - cd build
+  - cmake -DCMAKE_CXX_FLAGS=${CXX_FLAGS} ..
+  - ./configure --enable-gcov
+  - make
+  - ctest --output-on-failure
+  - valgrind --leak-check=full --error-exitcode=1 ./TP_C_task-1
+  - cppcheck --enable=all --std=c11 --check-config --suppress=missingIncludeSystem
+
+
+after_success:
+  - coveralls --exclude tests --gcov-options '\-lp'
