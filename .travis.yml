@@ -7,7 +7,6 @@ branches:
 matrix:
   include:
     - os: linux
-      arch: amd64
       dist: trusty
       sudo: true
       compiler: gcc
@@ -25,6 +24,7 @@ matrix:
             - lcov
 
 before_install:
+  - sudo apt-get -y install valgrind
   - pip install --user cpp-coveralls
 
 script:
