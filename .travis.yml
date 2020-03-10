@@ -1,11 +1,17 @@
 language: c
 
+branches:
+  only:
+    - base
+
 matrix:
   include:
     - os: linux
+      arch: amd64
       dist: trusty
       sudo: true
       compiler: gcc
+
       addons:
         apt:
           sources:
@@ -30,7 +36,7 @@ script:
   - make
   - ctest --output-on-failure
   - valgrind --leak-check=full --leak-resolution=med --track-origins=yes --vgdb=no ./tests/Google_Tests_run
-  - cppcheck --enable=all --std=c99 --check-config --suppress=missingIncludeSystem ../main.c ../header.h ../functions.c
+  - cppcheck --enable=all --std=c99 --check-config --suppress=missingIncludeSystem ../main.c ../include.h ../functions.c
 
 
 after_success:

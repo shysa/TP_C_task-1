@@ -1,50 +1,47 @@
-#include "header.h"
+#include "include.h"
 
-int** GetMatrixMemory(size_t rows, size_t cols) {
+int** get_matrix_memory(const size_t rows, const size_t cols) {
     if (!rows || !cols) {
-        printf("Rows or columns can't be 0\n");
         return NULL;
     }
 
     int **matrix = (int **) calloc(rows, sizeof(int*));
     if (!matrix) {
-        printf("Memory allocation error\n");
         return NULL;
     }
     for (size_t i = 0; i < rows; i++) {
         matrix[i] = (int *) calloc(cols, sizeof(int));
         if (!matrix[i]) {
-            printf("Memory allocation error\n");
-            FreeMatrixMemory(matrix, i);
-            return NULL;
+            free_matrix_memory(matrix, i);
         }
     }
     return matrix;
 }
 
-int ReadMatrix(int** matrix, size_t rows, size_t cols) {
+int read_matrix(FILE * input, int** matrix, const size_t rows, const size_t cols) {
     if (!matrix) {
-        printf("Matrix can't be read\n");
-        return 1;
+        return -1;
     }
-    printf("Enter the matrix:\n");
+
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
-            scanf("%d", &matrix[i][j]);
+            if (!fscanf(input,"%d", &matrix[i][j])) {
+                free_matrix_memory(matrix, rows);
+                return -1;
+            }
         }
     }
 
     return 0;
 }
 
-int PrintMatrix(int** matrix, size_t rows, size_t cols) {
+int print_matrix(int** matrix, const size_t rows, const size_t cols) {
     if (!matrix) {
-        printf("Matrix can't be output\n");
-        return 1;
+        return -1;
     }
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
-            printf("%2d ", matrix[i][j]);
+            printf("%d ", matrix[i][j]);
         }
         printf("\n");
     }
@@ -53,24 +50,29 @@ int PrintMatrix(int** matrix, size_t rows, size_t cols) {
     return 0;
 }
 
-int*** FormingMatrixes(int** matrix, size_t rows, size_t cols) {
-    int ***result = (int***) calloc(3, sizeof(int**));
+int*** forming_matrix(const int** matrix, const size_t rows, const size_t cols) {
+    int ***result = (int***) calloc(NUM_MATRIXES, sizeof(int**));
     if (!result) {
-        printf("Memory allocation error\n");
         return NULL;
     }
 
-    size_t new_cols[3];
+    size_t new_cols[NUM_MATRIXES];
 
-    new_cols[0] = cols / 3 + (cols % 3 > 0 ? 1 : 0);
-    new_cols[1] = cols / 3 + (cols % 3 > 1 ? 1 : 0);
-    new_cols[2] = cols / 3;
+    for (size_t i = 0; i < NUM_MATRIXES; i++) {
+        new_cols[i] = cols / NUM_MATRIXES + (cols % NUM_MATRIXES > i ? 1 : 0);
+    }
 
-    for (size_t i = 0; i < 3; i++) {
+    for (size_t i = 0; i < NUM_MATRIXES; i++) {
         if (new_cols[i]) {
-            result[i] = GetMatrixMemory(rows, new_cols[i]);
+            result[i] = get_matrix_memory(rows, new_cols[i]);
             if (result[i]) {
-                CopingMatrix(&result[i], matrix, rows, new_cols[i], i);
+                if (copy_matrix(&result[i], (const int **) matrix, rows, new_cols[i], i)) {
+                    free_result(result, rows);
+                    return NULL;
+                }
+            } else {
+                free_result(result, rows);
+                return NULL;
             }
         }
     }
@@ -78,31 +80,34 @@ int*** FormingMatrixes(int** matrix, size_t rows, size_t cols) {
     return result;
 }
 
-void CopingMatrix(int** result[], int** matrix, size_t rows, size_t cols, size_t start) {
+int copy_matrix(int ***result, const int** matrix, const size_t rows, const size_t cols, const size_t start) {
+    if (!result || !matrix) {
+        return -1;
+    }
     for (size_t i = 0; i < rows; i++) {
-        for (size_t round = start, new_cols = 0; new_cols < cols; round+=3, new_cols++) {
+        for (size_t round = start, new_cols = 0; new_cols < cols; round+=NUM_MATRIXES, new_cols++) {
             (*result)[i][new_cols] = matrix[i][round];
         }
     }
+
+    return 0;
 }
 
-int FreeResult(int*** result, size_t rows) {
+int free_result(int*** result, size_t rows) {
     if (!result) {
-        printf("Memory can't be freed\n");
-        return 1;
+        return -1;
     }
-    for (size_t i = 0; i < 3; i++) {
-        FreeMatrixMemory(result[i], rows);
+    for (size_t i = 0; i < NUM_MATRIXES; i++) {
+        free_matrix_memory(result[i], rows);
     }
     free(result);
 
     return 0;
 }
 
-int FreeMatrixMemory(int** matrix, size_t rows) {
+int free_matrix_memory(int** matrix, size_t rows) {
     if (!matrix) {
-        printf("Memory can't be freed\n");
-        return 1;
+        return -1;
     }
     for (size_t i = 0; i < rows; i++) {
         if (matrix[i]) {
@@ -114,9 +119,9 @@ int FreeMatrixMemory(int** matrix, size_t rows) {
     return 0;
 }
 
-int Reading(FILE * input, size_t *rows, size_t *cols) {
+int read_sizes(FILE * input, size_t *rows, size_t *cols) {
     if (!fscanf(input, "%zu %zu", rows, cols)) {
-        return 1;
+        return -1;
     }
     return 0;
 }

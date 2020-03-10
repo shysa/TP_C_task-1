@@ -8,7 +8,7 @@
     массив указателей на результирующие структуры (тройной указатель).
 */
 
-#include "header.h"
+#include "include.h"
 
 
 int main() {
@@ -17,17 +17,41 @@ int main() {
     int **matrix = NULL;
     int ***result = NULL;
 
-    printf("Enter size of matrix: ");
-    Reading(stdin, &rows, &cols);
+    if (read_sizes(stdin, &rows, &cols)) {
+        printf("Wrong matrix sizes\n");
+        return -1;
+    }
 
-    matrix = GetMatrixMemory(rows, cols);
-    ReadMatrix(matrix, rows, cols);
-    PrintMatrix(matrix, rows, cols);
+    matrix = get_matrix_memory(rows, cols);
+    if (!matrix) {
+        printf("Memory allocation error\n");
+        return -1;
+    }
 
-    result = FormingMatrixes(matrix, rows, cols);
+    if (read_matrix(stdin, matrix, rows, cols)) {
+        printf("Wrong matrix data\n");
+        return -1;
+    }
 
-    FreeResult(result, rows);
-    FreeMatrixMemory(matrix, rows);
+    if (print_matrix(matrix, rows, cols)) {
+        printf("Matrix can't be printed\n");
+        return -1;
+    }
+
+    result = forming_matrix((const int **) matrix, rows, cols);
+    if (!result) {
+        printf("Can't form result\n");
+        return -1;
+    }
+
+    if (free_result(result, rows)) {
+        printf("Memory can't be freed\n");
+        return -1;
+    }
+    if (free_matrix_memory(matrix, rows)) {
+        printf("Memory can't be freed");
+        return -1;
+    }
 
     return 0;
 }
